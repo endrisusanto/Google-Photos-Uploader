@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Photos Uploader - Dashboard</title>
+    <link rel="icon" type="image/png" href="/media/Google-Photos-Logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto', 'Google Sans', sans-serif;
+            background: #f8f9fa;
+            transition: background-color 0.3s;
+            overflow-x: hidden;
+        }
+        
+        .dark body { 
+            background: #0f172a;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .dark .glass {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); }
+        
+        .sticky-header th { position: sticky; top: 0; background-color: rgba(249, 250, 251, 0.8) !important; backdrop-filter: blur(8px); z-index: 20; }
+        .dark .sticky-header th { background-color: rgba(30, 41, 59, 0.9) !important; }
+
+        .code-quote {
+            border-left: 4px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .dark .code-quote {
+            border-left: 4px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen transition-colors duration-300">
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Top Navigation Bar -->
+    <header class="glass sticky top-0 z-50 px-6 py-3 flex items-center justify-between transition-colors border-b-0">
+        <div class="flex items-center space-x-4">
+            <img src="/media/Google-Photos-Logo.png" alt="Logo" class="w-8 h-8 rounded-lg shadow-sm" onerror="this.src='https://www.gstatic.com/images/branding/product/1x/photos_96dp.png'">
+            <span class="text-xl font-medium text-gray-700 dark:text-gray-100">Google Photos <span class="font-normal text-gray-500 dark:text-gray-400">Uploader</span></span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <div class="hidden md:flex items-center bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full border border-green-100 dark:border-green-800/30 mr-2">
+                <div class="w-2.5 h-2.5 bg-green-500 rounded-full mr-2 pulse"></div>
+                <span class="text-sm font-medium text-green-700 dark:text-green-400">Sistem Aktif</span>
+            </div>
+
+            <button onclick="openSettings()" class="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all active:scale-95" title="Pengaturan">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a7.723 7.723 0 0 1 0 .254c-.007.378.138.75.43.99l1.004.827c.445.367.553.968.26 1.43l-1.297 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+            </button>
+
+            <button onclick="restartSystem()" class="p-2.5 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-all active:scale-95" title="Restart Docker">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+            
+            <button id="dark-mode-toggle" class="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-all">
+                <svg id="sun-icon" class="hidden w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z"></path></svg>
+                <svg id="moon-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-8 pb-32">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="glass p-6 rounded-2xl transition-colors group">
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Total Unggahan</div>
+                <div class="text-3xl font-bold text-gray-900 dark:text-gray-100" id="stat-total">--</div>
+                <div class="mt-2 text-xs text-green-600 dark:text-green-500 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                    Database Sinkron
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-2xl transition-colors">
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Sesi Saat Ini</div>
+                <div class="flex items-end justify-between">
+                    <div>
+                        <span class="text-3xl font-bold text-gray-900 dark:text-gray-100" id="stat-done">0</span>
+                        <span class="text-gray-400 dark:text-gray-500 ml-1">/ <span id="stat-seen">0</span></span>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-tight">Kecepatan</div>
+                        <div class="text-lg font-bold text-blue-600 dark:text-blue-500" id="stat-speed">0 KB/s</div>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full mt-4 overflow-hidden">
+                    <div id="progress-bar" class="bg-blue-500 h-full transition-all duration-700 shadow-[0_0_12px_rgba(59,130,246,0.3)]" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-2xl transition-colors relative overflow-hidden md:col-span-2 lg:col-span-1">
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider">Status Alur Kerja</div>
+                <div class="flex items-center justify-between relative z-10 px-2">
+                    <div id="step-1" class="flex flex-col items-center space-y-1.5">
+                        <div class="w-9 h-9 rounded-full border-2 border-blue-500 flex items-center justify-center text-xs font-bold font-mono transition-all duration-300">1</div>
+                        <span class="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-tighter">Scan</span>
+                    </div>
+                    <div class="h-0.5 flex-grow bg-gray-200 dark:bg-gray-800 mx-2 mb-5"></div>
+                    <div id="step-2" class="flex flex-col items-center space-y-1.5">
+                        <div class="w-9 h-9 rounded-full border-2 border-gray-200 dark:border-gray-800 flex items-center justify-center text-xs font-bold font-mono transition-all duration-300">2</div>
+                        <span class="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-tighter">Proses</span>
+                    </div>
+                    <div class="h-0.5 flex-grow bg-gray-200 dark:bg-gray-800 mx-2 mb-5"></div>
+                    <div id="step-3" class="flex flex-col items-center space-y-1.5">
+                        <div class="w-9 h-9 rounded-full border-2 border-gray-200 dark:border-gray-800 flex items-center justify-center text-xs font-bold font-mono transition-all duration-300">3</div>
+                        <span class="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-tighter">Selesai</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-2xl overflow-hidden transition-colors">
+            <div class="px-6 py-4 border-b border-gray-100/30 dark:border-white/5 flex items-center justify-between">
+                <h2 class="text-lg font-medium text-gray-800 dark:text-gray-200 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Aktivitas Terbaru
+                </h2>
+                <div class="flex items-center space-x-2">
+                    <span id="current-time" class="text-xs font-mono text-gray-500 dark:text-gray-500 mr-2">--:--:--</span>
+                    <button onclick="fetchLogs()" class="text-sm font-bold hover:bg-blue-50/50 dark:hover:bg-blue-900/20 text-[#1a73e8] dark:text-blue-400 px-3 py-1.5 rounded-lg transition active:scale-95">RELOAD</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50/50 dark:bg-gray-800/50 text-[10px] font-bold text-gray-500 dark:text-gray-500 uppercase tracking-widest sticky-header">
+                        <tr>
+                            <th class="px-6 py-4">Waktu</th>
+                            <th class="px-6 py-4">Aksi</th>
+                            <th class="px-6 py-4">File</th>
+                            <th class="px-6 py-4">Tipe</th>
+                            <th class="px-6 py-4">Ukuran</th>
+                            <th class="px-6 py-4 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body" class="divide-y divide-gray-100 dark:divide-white/5 text-sm">
+                        <tr class="animate-pulse">
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-400 dark:text-gray-600 italic">Menghubungkan ke server...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="config-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 invisible transition-all duration-300">
+        <div class="glass dark:bg-gray-900 w-full max-w-lg rounded-3xl p-8 shadow-2xl relative border-white/5">
+            <button onclick="closeSettings()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Pengaturan Sistem</h3>
+            
+            <div class="space-y-5">
+                <div class="code-quote p-4 rounded-xl text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p class="font-bold text-blue-600 dark:text-blue-500 mb-1 uppercase tracking-wider">CARA MENDAPATKAN AUTH_DATA:</p>
+                    <p class="mb-2">Buka aplikasi Google Photos (atau ReVanced) di HP Anda, lalu jalankan perintah ini di terminal (Fedora/Linux):</p>
+                    <code class="block bg-gray-100 dark:bg-gray-800 p-2 rounded text-[10px] font-mono text-gray-800 dark:text-gray-200 mt-1 select-all">adb logcat | grep "auth%2Fphotos.native"</code>
+                    <p class="mt-2 text-[10px] italic opacity-75">* Salin hasil yang dimulai dari <span class="font-bold">androidId=...</span> sampai akhir baris.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">AUTH_DATA Key (androidId=...)</label>
+                    <textarea id="inp-auth" class="w-full h-32 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 text-sm font-mono text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none" placeholder="Tempel androidId=... di sini"></textarea>
+                </div>
+
+                <div class="pt-2 flex space-x-3">
+                    <button onclick="saveConfig()" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-600/20">SIMPAN PERUBAHAN</button>
+                    <button onclick="closeSettings()" class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold px-6 py-4 rounded-2xl transition-all active:scale-95 hover:bg-gray-200 dark:hover:bg-gray-700">BATAL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        const starCount = 150;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Star {
+            constructor() { this.init(); }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random();
+                this.fadeSpeed = Math.random() * 0.05;
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                this.opacity += this.fadeSpeed;
+                if (this.opacity > 1 || this.opacity < 0) this.fadeSpeed *= -1;
+            }
+            draw() {
+                const isDark = document.documentElement.classList.contains('dark');
+                ctx.fillStyle = isDark ? `rgba(255, 255, 255, ${this.opacity * 0.8})` : `rgba(0, 0, 0, ${this.opacity * 0.1})`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+        for (let i = 0; i < starCount; i++) stars.push(new Star());
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(s => { s.update(); s.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+            const el = document.getElementById('current-time');
+            if (el) el.innerText = timeStr;
+        }
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                if (!response.ok) return;
+                const data = await response.json();
+                
+                document.getElementById('stat-total').innerText = data.total_uploads;
+                document.getElementById('stat-speed').innerText = data.upload_speed;
+                document.getElementById('stat-done').innerText = data.session_uploads;
+                document.getElementById('stat-seen').innerText = data.total_seen;
+                
+                const percent = data.total_seen > 0 ? (data.session_uploads / data.total_seen) * 100 : 0;
+                document.getElementById('progress-bar').style.width = `${percent}%`;
+
+                const latestAction = data.events[0]?.action || '';
+                ['step-1', 'step-2', 'step-3'].forEach(id => {
+                    document.getElementById(id).querySelector('div').className = 'w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 border-gray-200 dark:border-gray-800 text-gray-400';
+                });
+                
+                let activeId = 'step-1';
+                if (latestAction.includes('Memproses')) activeId = 'step-2';
+                else if (latestAction.includes('Terunggah') || latestAction.includes('Gagal')|| latestAction.includes('Dihapus')) activeId = 'step-3';
+                
+                const circle = document.getElementById(activeId).querySelector('div');
+                circle.className = 'w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 border-blue-500 bg-blue-500 text-white scale-110 shadow-lg';
+                
+                const tableBody = document.getElementById('log-body');
+                tableBody.innerHTML = data.events.length ? '' : '<tr><td colspan="6" class="px-6 py-12 text-center text-gray-400 dark:text-gray-600 italic">Belum ada aktivitas</td></tr>';
+                
+                data.events.forEach((event, index) => {
+                    let statusColor = 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20';
+                    if (event.action.includes('Gagal')) statusColor = 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/10';
+                    if (event.action.includes('Terunggah')) statusColor = 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20';
+                    if (event.action.includes('Hapus')) statusColor = 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/10';
+
+                    let statusContent = '<svg class="w-5 h-5 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+                    
+                    if (event.action.includes('Memproses')) {
+                        if (index === 0) {
+                            statusContent = '<div class="w-4 h-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin ml-auto"></div>';
+                        } else {
+                            statusContent = '<svg class="w-5 h-5 ml-auto text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg>';
+                        }
+                    } else if (event.action.includes('Gagal')) {
+                        statusContent = '<svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>';
+                    }
+
+                    const row = `
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                            <td class="px-6 py-4 text-gray-500 dark:text-gray-500 font-mono text-xs">${event.time}</td>
+                            <td class="px-6 py-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusColor}">${event.action}</span></td>
+                            <td class="px-6 py-4 text-gray-700 dark:text-gray-200 font-medium truncate max-w-xs" title="${event.file}">${event.file.split('/').pop()}</td>
+                            <td class="px-6 py-4 text-gray-500 dark:text-gray-500 text-xs">${event.metadata || '-'}</td>
+                            <td class="px-6 py-4 text-gray-500 dark:text-gray-500 text-xs">${event.filesize || '-'}</td>
+                            <td class="px-6 py-4 text-right">${statusContent}</td>
+                        </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } catch (e) {}
+        }
+
+        async function restartSystem() {
+            if (confirm("Restart server?")) {
+                const res = await fetch('/api/restart', { method: 'POST' });
+                if (res.ok) alert("Restarting... Re-load in 8s.");
+                setTimeout(() => window.location.reload(), 8000);
+            }
+        }
+        const modal = document.getElementById('config-modal');
+        function openSettings() { fetch('/api/config').then(r=>r.json()).then(d=>document.getElementById('inp-auth').value=d.auth_data||''); modal.classList.remove('invisible'); modal.classList.add('opacity-100'); }
+        function closeSettings() { modal.classList.remove('opacity-100'); modal.classList.add('invisible'); }
+        function saveConfig() { fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({auth_data:document.getElementById('inp-auth').value})}).then(r=>{if(r.ok)alert("Disimpan! Klik RESTART.");}); }
+        function updateDarkMode() { document.documentElement.classList.toggle('dark', localStorage.theme==='dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)); }
+        document.getElementById('dark-mode-toggle').addEventListener('click', () => { localStorage.theme = document.documentElement.classList.contains('dark') ? 'light' : 'dark'; updateDarkMode(); });
+        updateDarkMode(); setInterval(fetchLogs, 5000); setInterval(updateTime, 1000); fetchLogs(); updateTime();
+    </script>
+</body>
+</html>

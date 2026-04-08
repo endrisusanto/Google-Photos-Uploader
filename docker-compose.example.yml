@@ -1,0 +1,18 @@
+services:
+  gphotos-uploader:
+    build: .
+    container_name: gphotos-uploader
+    restart: unless-stopped
+    environment:
+      - WATCHED_FOLDER=/data
+      # Masukkan AUTH_DATA dari adb logcat di sini
+      - AUTH_DATA=PLACEHOLDER_KEY_HERE
+    security_opt:
+      - label:disable
+    volumes:
+      # Ganti path di bawah ke folder foto Anda di Host
+      - /path/to/your/photos/on/host:/data:z
+      - ./script_gphoto.py:/app/script_gphoto.py:z
+      - ./index.html:/app/index.html:z
+    ports:
+      - "8080:8080"

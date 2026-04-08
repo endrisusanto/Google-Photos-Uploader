@@ -1,0 +1,15 @@
+total 68
+drwxr-xr-x. 1 endri-pro endri-pro   294 Apr  7 15:24 .
+drwxrwxrwx. 1 endri-pro endri-pro   926 Apr  7 15:19 ..
+-rw-r--r--. 1 endri-pro endri-pro    50 Apr  1 14:05 .dockerignore
+drwxr-xr-x. 1 endri-pro endri-pro   142 Apr  7 15:19 .git
+-rw-r--r--. 1 endri-pro endri-pro    27 Apr  7 15:17 .gitignore
+-rw-r--r--. 1 endri-pro endri-pro   821 Apr  7 13:31 Dockerfile
+-rw-r--r--. 1 endri-pro endri-pro  3886 Apr  1 14:05 README.md
+-rw-r--r--. 1 endri-pro endri-pro   519 Apr  7 15:16 docker-compose.example.yml
+-rw-r--r--. 1 endri-pro endri-pro  1150 Apr  7 15:16 docker-compose.yml
+-rw-r--r--. 1 endri-pro endri-pro 24797 Apr  7 14:49 index.html
+drwxr-xr-x. 1 endri-pro endri-pro    88 Apr  7 15:14 media
+-rw-r--r--. 1 endri-pro endri-pro     0 Apr  7 15:24 output.txt
+-rw-r--r--. 1 endri-pro endri-pro    90 Apr  7 15:21 requirements.txt
+-rw-r--r--. 1 endri-pro endri-pro 12232 Apr  7 13:30 script_gphoto.py

@@ -12,7 +12,7 @@ RUN apk add --no-cache \
     cifs-utils
 
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Final image
 FROM python:3.11-alpine
@@ -20,24 +20,24 @@ FROM python:3.11-alpine
 # Install only essential runtime dependencies
 RUN apk add --no-cache \
     cifs-utils \
-    inotify-tools
-
-# Copy dependencies from the build stage
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
-
-# Configure non-root user
-RUN adduser -D -u 1000 appuser && \
-    mkdir /data && \
-    chown appuser:appuser /data
+    inotify-tools \
+    sqlite
 
 WORKDIR /app
 
-# Copy only necessary files
-COPY script_gphoto.py .
+# Copy python packages from builder
+COPY --from=builder /usr/local /usr/local
 
-USER appuser
+# Prepare data directory
+RUN mkdir /data
+
+# Copy application files
+COPY script_gphoto.py .
+COPY index.html .
+COPY media ./media
+
 ENV PYTHONUNBUFFERED=1 \
     WATCHED_FOLDER=/data
 
+# Run script
 CMD ["python", "-u", "script_gphoto.py"]

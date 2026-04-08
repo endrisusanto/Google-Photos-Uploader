@@ -1,0 +1,26 @@
+IMAGE                                            ID             DISK USAGE   CONTENT SIZE   EXTRA
+alpine:latest                                    25109184c71b         14MB         3.95MB   U    
+archlinux:base-devel                             0cce2e428622       1.06GB          258MB        
+backend-app:latest                               c8e203f6a17a        224MB           59MB   U    
+ciuse99/gphotos-uploader:latest                  9faa67da144c        429MB          106MB        
+cloudflare/cloudflared:latest                    404528c1cd63       94.2MB         29.7MB   U    
+companion-release-cheatsheet-app:latest          1c10045b1e97        762MB          196MB   U    
+dhl-express-tracker-app:latest                   50701bb429a4        191MB         49.9MB   U    
+dompetkeluarga-server:latest                     aee453116097        194MB         47.6MB        
+google-photos-folder-gphotos-uploader:latest     1b4aa42a089f        129MB           31MB        
+google-photos-uploader-gphotos-uploader:latest   fac818e92526        128MB         30.9MB        
+gphotos-uploader:latest                          b83699fc604c        129MB           31MB        
+gphotos-uploader:local                           87cd1683d492        108MB         25.5MB        
+local-docker-eyeos:latest                        9c55d7f2f70b       26.1GB         10.7GB   U    
+mariadb:10.6                                     4c3275637f13        438MB          108MB   U    
+mongo:latest                                     474f5c3bf0e3       1.29GB          338MB   U    
+mysql:8.0                                        a3dff78d8762       1.08GB          247MB   U    
+nextcloud:latest                                 d53f6cb35b07       2.09GB          533MB   U    
+php:8.2-cli                                      f4947c32d002        741MB          186MB        
+postgres:15-alpine                               fceb6f86328c        393MB          110MB        
+profile-web:latest                               304faf17278d       94.6MB         26.1MB   U    
+qr-data-processor-scanner-backend:latest         ccba183cf85d        301MB         65.3MB   U    
+qr-data-processor-scanner-frontend:latest        d86a21102ab5       94.7MB         26.2MB   U    
+qris-donation-generator-qris-app:latest          161b95bd4b80       94.4MB         26.1MB   U    
+redis:alpine                                     2afba59292f2        135MB         34.9MB   U    
+warga_ambyar-app:latest                          9861f75fe813       1.05GB          337MB   U    
