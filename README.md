@@ -1,144 +1,100 @@
-# 📷 Google Photos Uploader
+# 📷 Google Photos Uploader (Unlimited)
 
-This project is based on [google_photos_mobile_client](https://github.com/xob0t/google_photos_mobile_client) and allows you to **monitor a folder** (even SMB/NAS shares) and **automatically upload photos to Google Photos** without consuming storage space, using a lightweight Docker container.
-
----
-
-## 🚀 Features
-
-- ✅ Unlimited uploads in original quality  
-- 🔁 Automatically skips already uploaded files  
-- 📁 Works with local folders and SMB/NAS mounts  
-- 🐳 Runs inside a minimal Docker container  
+Proyek ini berbasis pada [google_photos_mobile_client](https://github.com/xob0t/google_photos_mobile_client) yang memungkinkan Anda untuk **memantau folder** (termasuk share SMB/NAS) dan **mengunggah foto ke Google Photos secara otomatis** tanpa mengurangi kuota penyimpanan, menggunakan kontainer Docker yang ringan.
 
 ---
 
-## 📦 Requirements
+## 🚀 Fitur Utama
 
-- Docker and Docker Compose installed on your host machine  
-- A folder (or mounted SMB share) containing photos  
-- An `AUTH_DATA` authentication key (see section below)  
+- ✅ **Penyimpanan Tanpa Batas**: Mengunggah foto dalam kualitas asli tanpa memakan kuota storage Google (menggunakan identitas perangkat Pixel).
+- 🔁 **Otomatisasi**: Memantau folder secara real-time dan langsung mengunggah file baru.
+- 🗑️ **Auto-Clean**: Menghapus file lokal secara otomatis setelah berhasil terunggah (cocok untuk server dengan kapasitas terbatas).
+- 🖥️ **Dashboard Real-time**: Pantau status unggahan, kecepatan, dan log melalui antarmuka web yang modern.
+- 📁 **Fleksibel**: Bekerja dengan folder lokal maupun mount network (SMB/NAS).
+- 🐳 **Dockerized**: Berjalan di dalam kontainer Docker minimalis.
 
 ---
 
-## ⚙️ Docker Compose Configuration
+## 📦 Kebutuhan Sistem
 
-Here's a sample `docker-compose.yml` configuration:
+- Docker dan Docker Compose yang sudah terinstal.
+- Folder berisi foto (atau mount SMB share).
+- Kode otentikasi `AUTH_DATA` (lihat bagian cara mendapatkan kunci di bawah).
+
+---
+
+## ⚙️ Konfigurasi Docker Compose
+
+Gunakan konfigurasi `docker-compose.yml` berikut:
 
 ```yaml
 services:
   gphotos-uploader:
-    image: ciuse99/gphotos-uploader:latest
+    build: .
     container_name: gphotos-uploader
     restart: unless-stopped
     environment:
       - WATCHED_FOLDER=/data
-      - AUTH_DATA=INSERT_YOUR_AUTH_DATA_HERE
+      - AUTH_DATA=ISI_DENGAN_AUTH_DATA_ANDA
     volumes:
-      - INSERT_YOUR_PHOTO_FOLDER_HERE:/data
+      - /jalur/ke/foto/anda:/data:z
+      - ./uploader.db:/app/uploader.db:z # Opsional: jika ingin database persisten
+    ports:
+      - "8080:8080"
 ```
 
-Replace `INSERT_YOUR_AUTH_DATA_HERE` with your real authentication string, and map your photo folder accordingly.
+Ganti `/jalur/ke/foto/anda` dengan lokasi folder foto Anda di komputer host.
 
 ---
 
-## ▶️ Getting Started
+## ▶️ Cara Memulai
 
-1. Open a terminal and navigate to the folder containing `docker-compose.yml`.
-2. Start the container in the background:
+1. Buka terminal dan masuk ke folder proyek.
+2. Jalankan kontainer:
+   ```bash
+   docker-compose up -d --build
+   ```
+3. Buka Dashboard di browser:
+   `http://localhost:8080`
+4. Cek log secara langsung:
+   ```bash
+   docker-compose logs -f
+   ```
+
+---
+
+## 🔑 Cara Mendapatkan `AUTH_DATA`
+
+Anda hanya perlu melakukan ini **satu kali** untuk mendapatkan kunci enkripsi permanen.
+
+### ✅ Opsi 1 – Menggunakan ReVanced (Tanpa Root)
+
+1. Instal Google Photos ReVanced di Android Anda:
+   - Instal [GmsCore](https://github.com/ReVanced/GmsCore/releases).
+   - Instal APK Google Photos yang sudah dipatch.
+2. Hubungkan perangkat ke PC melalui ADB.
+3. Jalankan perintah ini di terminal:
+   - **Windows:** `adb logcat | FINDSTR "auth%2Fphotos.native"`
+   - **Linux/macOS:** `adb logcat | grep "auth%2Fphotos.native"`
+4. Buka aplikasi Google Photos ReVanced dan login.
+5. Salin baris yang muncul mulai dari `androidId=...` hingga akhir. Itulah `AUTH_DATA` Anda! 🎉
+
+---
+
+## 🔄 Pembaruan
+
+Untuk memperbarui aplikasi ke versi terbaru:
 
 ```bash
-docker-compose up -d
-```
-
-3. View live logs:
-
-```bash
-docker-compose logs -f
-```
-
-4. Stop the container:
-
-```bash
-docker-compose down
+git pull
+docker-compose up -d --build
 ```
 
 ---
 
-## 🔑 How to Get Your `AUTH_DATA`
-
-You only need to do this **once** to retrieve your permanent key.
-
-### ✅ Option 1 – ReVanced (No Root Required)
-
-1. Install Google Photos ReVanced on your Android device:  
-   - Install [GmsCore](https://github.com/ReVanced/GmsCore/releases)  
-   - Install the patched APK from [here](https://github.com/j-hc/revanced-magisk-module/releases) or patch it yourself  
-2. Connect your device to your PC via ADB.
-3. Run the following in your terminal:
-
-    **Windows:**
-    ```cmd
-    adb logcat | FINDSTR "auth%2Fphotos.native"
-    ```
-
-    **Linux/macOS:**
-    ```bash
-    adb logcat | grep "auth%2Fphotos.native"
-    ```
-
-4. If you've used ReVanced before, remove your Google Account from GmsCore.
-5. Launch Google Photos ReVanced and log into your account.
-6. You should see logs appear in your terminal.
-7. Copy the full line starting from `androidId=` to the end. That’s your `AUTH_DATA`! 🎉
-
----
-
-### 🛠 Option 2 – Official Google Photos App (Root Required)
-
-<details>
-  <summary><strong>Click to expand</strong></summary>
-
-1. Use a rooted Android device or emulator (Android 9–13 recommended).
-2. Connect your device to your PC via ADB.
-3. Install [HTTP Toolkit](https://httptoolkit.com).
-4. In HTTP Toolkit, go to **Intercept → Android Device via ADB**.
-5. Apply the filter:
-
-    ```text
-    contains(https://www.googleapis.com/auth/photos.native)
-    ```
-
-    Or for older versions:
-
-    ```text
-    contains(www.googleapis.com%2Fauth%2Fplus.photos.readwrite)
-    ```
-
-6. Open Google Photos and log into your account.
-7. Look for the captured request and copy the **request body** as plain text.  
-   ![http_toolkit_tip](media/image.png)
-8. That’s your `AUTH_DATA`! 🎉
-
-</details>
-
----
-
-## 🔄 Updating the Image
-
-To update the image from Docker Hub and restart the container:
-
-```bash
-docker-compose pull
-docker-compose up -d --force-recreate
-```
-
----
-
-## 💡 Notes
-
-- You can change the monitored folder at any time by updating the volume bind and the `WATCHED_FOLDER` variable.
-- If you encounter permission issues with SMB shares, ensure the container user has the correct access rights.
-- Based on the open-source project [google_photos_mobile_client](https://github.com/xob0t/google_photos_mobile_client), with a simplified Docker integration.
+## 💡 Catatan
+- Aplikasi ini akan **menghapus** file di folder lokal setelah berhasil diunggah ke Google Photos. Pastikan Anda memiliki backup jika diperlukan.
+- Jika menggunakan SMB share, pastikan izin (permission) user kontainer sudah benar untuk membaca dan menghapus file.
+- Proyek ini adalah implementasi praktis dari riset [google_photos_mobile_client](https://github.com/xob0t/google_photos_mobile_client).
 
 ---
